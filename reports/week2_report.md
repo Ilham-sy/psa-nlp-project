@@ -41,7 +41,7 @@ Corrupted and duplicate-English rows were dropped **before** translating to avoi
 
 ## Final dataset
 
-`PSA_Processed_NLLB.csv` (full, with tokens + flags) and `PSA_Preprocessed_NLLB_Final.csv` (text + flags only):
+`PSA_Processed_NLLB.Finalcsv` (full, with tokens + flags) and `PSA_Preprocessed_NLLB_Light.csv` (text + flags only):
 
 - **9,539 rows × 14 columns**
 - `PSA_ID`: unique and complete (0 duplicates, 0 missing)
