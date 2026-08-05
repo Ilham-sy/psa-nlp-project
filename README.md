@@ -1,96 +1,95 @@
-# PSA 
-# Week 1 Progress Report
-## Data Collection and Curation for a Multilingual Public Service Announcement (PSA) Dataset
+# PSA Multilingual Machine Translation — English / Kiswahili / Dholuo
 
-**Project Title:** Development of a Multilingual Public Service Announcement (PSA) Dataset for Low-Resource Neural Machine Translation in Kenyan Languages
+Fine-tuning transformer models to translate Kenyan Public Service Announcements (PSAs) from English into Kiswahili and Dholuo, improving accessibility of health, safety, and civic information for communities underserved by general-purpose translation tools.
 
-**Group Members:**
-- Harina Chohan – 666983
-- Susan Otieno – 670501
-- Ilham Mohamed – 670152
-- Kevin Korir – 670656
+**Institution:** United States International University – Africa, Department of Data Science and Analytics, 2026
+**Team:** Harina Chohan · Susan Otieno · Ilham Mohamed · Kevin Korir · Yahya Mohamed
 
----
+## Overview
 
-## Introduction
+General-purpose MT systems struggle with the domain-specific register and vocabulary of public communication, and Kiswahili and Dholuo — two of Kenya's most widely spoken local languages — are underserved as a result. This project builds a cleaned, parallel English–Kiswahili–Dholuo PSA corpus and fine-tunes NLLB-200 and mT5-small to close that gap.
 
-Public Service Announcements (PSAs) are an important communication channel for disseminating information on health, education, agriculture, security, and governance. This project aims to develop a multilingual PSA dataset for low-resource neural machine translation. Week 1 focused on collecting, curating, and preparing the dataset.
+## Dataset
 
----
+- **9,539 cleaned records** across 6 domains: Agriculture, Health, Education, Security, Governance, Civic Education
+- Parallel text in English, Kiswahili, and Dholuo
+- Collected via a hybrid of manual collection and automated scraping
+- Dholuo translations generated with NLLB-200 (not Google Translate — see *Translation approach* below)
 
-## Week 1 Objectives
-
-- Identify reliable sources
-- Collect multilingual PSA data
-- Construct a structured dataset
-- Perform initial cleaning and basic validation
-- Produce a curated dataset exceeding 5,000 sentence pairs
-
----
-
-## Data Sources
-
-WHO Kenya, UNICEF Kenya, Kenya Red Cross, KEMRI, KALRO, Kenya Meteorological Department, Kenya News Agency, Daily Nation, Citizen TV, Reuters, AP News, UNFPA Kenya, and official government portals.
-
----
-
-## Data Collection Methodology
-
-A hybrid approach combining manual collection and automated scraping with **BeautifulSoup** was used, while respecting website access policies.
-
----
-
-## Dataset Construction
-
-**Fields:** `PSA_ID`, `Domain`, `English`, `Kiswahili`, `Dholuo (placeholder)`, `Source`, `Date`, `Metadata`
-
----
-
-## Data Cleaning and Initial Validation
-
-- Duplicate removal
-- Text standardisation
-- Basic language verification
-- Initial relevance filtering
-
-Records requiring further assessment were marked for detailed PSA validation.
-
----
-
-## Dataset Summary Statistics
-
-| Stage | Count |
+| Domain | Rows |
 |---|---|
-| Initial dataset | 6,648 records |
-| Combined dataset | 9,551 records |
-| After duplicate removal | 9,540 unique records |
+| Agriculture | 5,401 |
+| Health | 1,659 |
+| Education | 1,021 |
+| Security | 994 |
+| Governance | 403 |
+| Civic Education | 61 |
 
-**Domains:** Health, Education, Agriculture, Security, Governance
-**Languages:** English and Kiswahili (Dholuo placeholder)
+## Data pipeline
 
----
+**Profiling** surfaced several issues in the raw combined data: 132 rows with missing `PSA_ID`, 1,426 duplicate-`PSA_ID` pairs (an ID-collision bug from merging domain batches with independent counters, not real duplicate content), 2 corrupted cells, 11 duplicate English sentences, 14 rows with broken template placeholders, sharp domain imbalance, and ~70% of rows missing Dholuo.
 
-## Sample Dataset Entries
+**Cleaning:** corrupted and duplicate-English rows dropped; colliding/missing `PSA_ID`s re-keyed with a traceable suffix rather than dropped; template gaps and code-switching flagged (not altered) for downstream review.
 
-| PSA_ID | Domain | English | Kiswahili | Source | Date |
-|---|---|---|---|---|---|
-| PSA000003 | Health | PRESS RELEASE: JUNE 29, 2020 — The EU through its Civil Protection and Humanitarian Aid Operations department (ECHO) has donated KES 270 million (2,573,105 Million Euros) to WHO Kenya. | TAARIFA KWA VYOMBO VYA HABARI: JUNI 29, 2020 — EU kupitia idara yake ya Ulinzi wa Raia na Uendeshaji wa Misaada ya Kibinadamu (ECHO) imetoa KES milioni 270 (Euro milioni 2,573,105) kwa WHO Kenya. | WHO Kenya | 6/29/2020 |
-| PSA000004 | Health | This grant will be used by the WHO to support the Government of Kenya's efforts to control the spread of the pandemic. | Ruzuku hii itatumiwa na WHO kuunga mkono juhudi za Serikali ya Kenya za kudhibiti kuenea kwa janga hili. | WHO Kenya | 6/29/2020 |
-| PSA000009 | Health | Strengthening clinical care for high-consequence infectious diseases in East Africa. Following successive Ebola and Marburg outbreaks, countries are shifting how preparedness is defined. | Kuimarisha huduma ya kimatibabu kwa magonjwa ya kuambukiza yenye matokeo makubwa Afrika Mashariki. | WHO Kenya | 4/30/2026 |
-| PSA000012 | Health | Yet patient outcomes continue to vary, pointing to a different challenge. | Hata hivyo matokeo ya mgonjwa yanaendelea kutofautiana, yakiashiria changamoto tofauti. | WHO Kenya | 4/30/2026 |
-| PSA000013 | Health | Clinical management has emerged as the determining factor. | Usimamizi wa kimatibabu umeibuka kama kigezo cha kuamua. | WHO Kenya | 4/30/2026 |
+**Preprocessing:** whitespace/quote normalization (apostrophes and numerals preserved — meaningful in Dholuo names and PSA dates/amounts), regex-based tokenization, a starter cultural-terms glossary (SHA, IEBC, WHO, ECHO, GIZ, county).
 
-*(Full dataset available in the project data files — duplicate rows removed from this table for readability.)*
+**Translation approach:** Dholuo was generated with NLLB-200 (`facebook/nllb-200-distilled-600M`), run on a Colab T4 GPU. An initial approach scraping Google Translate's unofficial endpoint was rejected — it risks Google's rate-limiting/ToS enforcement at volume, and Google only added Dholuo support in July 2024 with acknowledged quality gaps, making it unsuitable as ground truth for a project specifically about under-resourced-language translation. NLLB-200 was already in scope as one of the two models being fine-tuned, is open-source, and carries no such risk.
 
----
+## Models
 
-## Challenges Encountered
+| | mT5-small | NLLB-200 (distilled) |
+|---|---|---|
+| Checkpoint | `google/mt5-small` | `facebook/nllb-200-distilled-600M` |
+| Architecture | Transformer, encoder–decoder | Transformer, encoder–decoder |
+| BLEU (fine-tuned) | not formally scored — qualitative only | **80.51** |
+| chrF (fine-tuned) | not formally scored — qualitative only | **89.55** |
 
-- Distinguishing genuine PSAs from general news articles
-- Duplicate records
-- Inconsistent formatting across sources
-- Limited multilingual resources
-- Time required for manual validation
-- Each source had a different page structure, requiring scraping scripts to be adapted per website — increasing collection time
+Training: 3 epochs, batch size 4, max sequence length 128, AdamW optimizer, 80/10/10 train/dev/test split (7,610 / 951 / 952). mT5 was prompted with a prefix ("translate English to Kiswahili: …"); NLLB-200 used its native language-token conditioning (`eng_Latn` → `swh_Latn` / `luo_Latn`).
 
----
+**Result:** NLLB-200 substantially outperformed mT5-small, consistent with its stronger pretrained coverage of African languages.
+
+## Repository structure
+
+```
+psa-mt-kenya/
+├── README.md
+├── LICENSE
+├── requirements.txt
+├── data/
+│   ├── raw/                  # Combined_PSA_Raw.csv
+│   ├── translated/           # PSA_Translated_NLLB.csv
+│   └── processed/            # PSA_Clean_Final_NLLB.csv (+ _light.csv)
+├── notebooks/
+│   ├── PSA_Preprocessing_on_NLLB.ipynb
+│   └── English_Kiswahili_Translation_.ipynb
+├── docs/
+│   └── PSA_Preprocessing_and_Translation_Summary.md
+└── poster/
+    └── PSA_Poster.pptx
+```
+
+## Reproducing
+
+1. Preprocessing: run `notebooks/PSA_Preprocessing_on_NLLB.ipynb` on an already-translated CSV (standard CPU runtime — no GPU needed).
+2. Modeling: run `notebooks/English_Kiswahili_Translation_.ipynb` in Colab with a T4 GPU runtime.
+
+## Limitations
+
+- Model performs best on the Agriculture domain, which is 57% of the dataset — a direct consequence of domain imbalance, not evaluated correction.
+- mT5-small output was repetitive/inaccurate outside agriculture-heavy phrasing; no formal BLEU/chrF was computed for it.
+- Grammatical errors occur in longer sentences.
+- Code-switching flags are heuristic (ALL-CAPS acronym + English stopword detection), not a language-ID model.
+- Dholuo translations are machine-generated (NLLB-200), not human-translated — native-speaker validation is still needed before treating them as ground truth.
+- The NLLB-200 BLEU score (80.51) is high relative to typical MT benchmarks; worth confirming there's no train/test leakage before presenting it as a general-purpose result, given how short and templated PSA text is.
+- The poster's sample translation pair hasn't been confirmed against a saved model inference run.
+
+## Future work
+
+- Collect more PSA data across underrepresented domains
+- Add more Kenyan and East African languages
+- Conduct human evaluation with native speakers
+- Deploy as a web-based translation utility for institutions
+
+## License
+
+Not yet finalized — the project brief suggests CC-BY. Confirm and add a `LICENSE` file before publishing the repo.
