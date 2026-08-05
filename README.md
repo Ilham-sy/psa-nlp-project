@@ -3,7 +3,8 @@
 Fine-tuning transformer models to translate Kenyan Public Service Announcements (PSAs) from English into Kiswahili and Dholuo, improving accessibility of health, safety, and civic information for communities underserved by general-purpose translation tools.
 
 **Institution:** United States International University – Africa, Department of Data Science and Analytics, 2026
-**Team:** Harina Chohan · Susan Otieno · Ilham Mohamed · Kevin Korir · Yahya Mohamed
+**Team:**
+Harina Chohan · Susan Otieno · Ilham Mohamed · Kevin Korir · Yahya Mohamed
 
 ## Overview
 
