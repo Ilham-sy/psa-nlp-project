@@ -49,26 +49,6 @@ Training: 3 epochs, batch size 4, max sequence length 128, AdamW optimizer, 80/1
 
 **Result:** NLLB-200 substantially outperformed mT5-small, consistent with its stronger pretrained coverage of African languages.
 
-## Repository structure
-
-```
-psa-mt-kenya/
-├── README.md
-├── LICENSE
-├── requirements.txt
-├── data/
-│   ├── raw/                  # Combined_PSA_Raw.csv
-│   ├── translated/           # PSA_Translated_NLLB.csv
-│   └── processed/            # PSA_Clean_Final_NLLB.csv (+ _light.csv)
-├── notebooks/
-│   ├── PSA_Preprocessing_on_NLLB.ipynb
-│   └── English_Kiswahili_Translation_.ipynb
-├── docs/
-│   └── PSA_Preprocessing_and_Translation_Summary.md
-└── poster/
-    └── PSA_Poster.pptx
-```
-
 ## Reproducing
 
 1. Preprocessing: run `notebooks/PSA_Preprocessing_on_NLLB.ipynb` on an already-translated CSV (standard CPU runtime — no GPU needed).
@@ -90,7 +70,3 @@ psa-mt-kenya/
 - Add more Kenyan and East African languages
 - Conduct human evaluation with native speakers
 - Deploy as a web-based translation utility for institutions
-
-## License
-
-Not yet finalized — the project brief suggests CC-BY. Confirm and add a `LICENSE` file before publishing the repo.
